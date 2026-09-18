@@ -2,6 +2,7 @@ import argparse
 import csv
 import sys
 from pathlib import Path
+import logging
 
 
 def check_data(filename):
@@ -19,6 +20,18 @@ def check_data(filename):
             missing_rows.append(row_number)
 
     return header, data, missing_rows
+
+#step 2 
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    datefmt="%H:%M:%S"
+)
+# Create a module-level logger
+logger = logging.getLogger(__name__)
+
+
 
 # TODO 1: Create an ArgumentParser
 # Description: "Check the quality of a CSV file."
@@ -62,19 +75,40 @@ parser.add_argument(
 # TODO 5: Parse the command-line arguments
 
 args = parser.parse_args()
+#Step 3
+if args.verbose:
+    logger.setLevel(logging.DEBUG)
+
+#Step 4
+#print(f'Arguments parsed: filename=students.csv')
+logger.debug(f'Arguments parsed: filename=students.csv')
 
 # Check if the file exists 
+#Step 5
 p = Path(args.input)
 if not p.is_file():
-    print(f"File not found: '{args.input}'")
+    logger.error(f"File not found: '{args.input}'")
     sys.exit(1)
 
-print(f"File validated: '{args.input}'")
-
+logger.info(f"File validated: '{args.input}'")
+#Step 6
+logger.debug(f"Loading data from: '{args.input}'")
 # Check the data
+#Step 7
 #header, data, missing_rows = check_data(args.filename) # args.input
 header, data, missing_rows = check_data(args.input)
+logger.info(f"Loaded {len(data)} rows")
 
+# Step 8
+if len(data) == 0:
+    logger.error("Input file contains no data; cannot continue")
+    sys.exit(1)
+
+#Step 9
+for row_number in missing_rows:
+  logger.warning(f"Row 1 has missing values")
+
+logger.info('INFO Report saved to data_quality.text')
 # Save the report
 with open(args.output, "w") as f:
     f.write(f"Number of rows: {len(data)}\n")
